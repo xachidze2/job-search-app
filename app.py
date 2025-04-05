@@ -5,10 +5,7 @@ from bs4 import BeautifulSoup
 from openpyxl import Workbook
 from io import BytesIO
 
-def search_jobs_to_excel(keywords="ბეტონის სიმტკიცე", "შენობის ექსპერტიზა", "ნაგებობის ექსპერტიზა", 
-    "ბეტონის გამოცდა", "საშენი მასალების სპეციალისტი", "სამშენებლო ლაბორატორია", 
-    "ტექნიკური ექსპერტიზა", "ანკერების გამოცდა", "ხიმინჯების გამოცდა", 
-    "ბეტონის გამოცდა", "დატკეპვნის კოეფიციენტი"):
+def search_jobs_to_excel(keyword="ბეტონის სიმტკიცე"):
     url = "https://www.jobs.ge"
     search_url = "https://www.google.com/search?q={}"
     response = requests.get(search_url)
