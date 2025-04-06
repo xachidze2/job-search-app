@@ -1,5 +1,6 @@
-serpapi
+serpapi==2.0.0
 openpyxl
 beautifulsoup4
 requests
 streamlit
+
