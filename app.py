@@ -1,22 +1,23 @@
 import streamlit as st
-import requests
-from bs4 import BeautifulSoup
+from serpapi import GoogleSearch
 from openpyxl import Workbook
 from io import BytesIO
 
-def search_internet_for_contact_info(keywords):
-    search_url = "https://www.google.com/search?q={}"
+def search_internet_for_contact_info(keywords, api_key):
+    search_results = []
     
-    results = []
     for keyword in keywords:
-        url = search_url.format(keyword)
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        response.encoding = 'utf-8'
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        for item in soup.find_all("h3"):
-            title = item.get_text()
-            link = item.find_parent("a")["href"]
+        params = {
+            "q": keyword,
+            "api_key": api_key
+        }
+        
+        search = GoogleSearch(params)
+        results = search.get_dict()
+        
+        for result in results.get("organic_results", []):
+            title = result.get("title")
+            link = result.get("link")
             
             # სცადეთ მიღებისას საკონტაქტო ინფორმაცია
             contact_info = []
@@ -26,9 +27,9 @@ def search_internet_for_contact_info(keywords):
             # ძიება საკონტაქტო ინფორმაციისთვის (მაგალითად, ელ. ფოსტა, ტელეფონი)
             email = contact_page_soup.find("a", href=lambda href: href and "mailto:" in href)
             phone = contact_page_soup.find("a", href=lambda href: href and "tel:" in href)
-            social = contact_page_soup.find_all("a", href=lambda href: href and "facebook.com" in href) # ეს მარტო ფეისბუკისთვის
-            name = contact_page_soup.find("h1") or contact_page_soup.find("h2") # პოსტის დასახელება
-
+            social = contact_page_soup.find_all("a", href=lambda href: href and "facebook.com" in href)
+            name = contact_page_soup.find("h1") or contact_page_soup.find("h2")
+            
             if email:
                 contact_info.append(f"Email: {email['href'][7:]}")
             if phone:
@@ -36,9 +37,9 @@ def search_internet_for_contact_info(keywords):
             if social:
                 contact_info.append(f"Social Links: {[a['href'] for a in social]}")
 
-            results.append({"title": title, "link": link, "contact_info": contact_info, "name": name.text if name else "Unknown"})
+            search_results.append({"title": title, "link": link, "contact_info": contact_info, "name": name.text if name else "Unknown"})
 
-    return results
+    return search_results
 
 def save_to_excel(results):
     wb = Workbook()
@@ -60,9 +61,10 @@ keywords = [
     "ტექნიკური ექსპერტიზა", "ანკერების გამოცდა", "ხიმინჯების გამოცდა", 
     "ბეტონის გამოცდა", "დატკეპვნის კოეფიციენტი"
 ]
+api_key = "a42f5c23c7135b385e09db757e6b4a915cfe034ba963702a4478cf8d76b864aa"  # SerpAPI key
 
 if st.button("ძიება"):
-    results = search_internet_for_contact_info(keywords)
+    results = search_internet_for_contact_info(keywords, api_key)
     excel_data = save_to_excel(results)
     st.success(f"{len(results)} შედეგი მოიძებნა!")
     st.download_button(
